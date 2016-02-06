@@ -25,8 +25,10 @@ parsed_lines = lines.map(parse_line)
 # the new from the course: filter
 filtered_prcp = parsed_lines.filter(lambda x: 'PRCP' in x[1]).map(lambda x: (x[0], x[2]))
 sum_by_station_month = filtered_prcp.reduceByKey(lambda x,y: x+y) # think, what exactly do x and y refer to?
+# make the sort scalable
+sorted_sum_by_station_month = sum_by_station_month.sortByKey()
 
-result = sum_by_station_month.collect()
+result = sorted_sum_by_station_month.collect()
 
-for line in sorted(result, key=lambda x: x[0][1]):
+for line in result:
 	print(line)

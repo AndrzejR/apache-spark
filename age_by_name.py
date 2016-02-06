@@ -14,12 +14,18 @@ def parseline(line):
 rdd = sc.textFile("c:/SparkCourse/fakefriends.csv")
 name_age = rdd.map(parseline)
 sums_by_names = name_age.mapValues(lambda x: (x, 1)).reduceByKey(lambda x,y: (x[0]+y[0], x[1]+y[1]))
+# name_grouped, (sum_ages, count)
 
 #let's get not only the averages, but also keep the counts of people per name
 avgs_by_names = sums_by_names.mapValues(lambda x: (x[1], x[0]/x[1]))
+# name_grouped, (count, avg_age)
 
-sorted_by_count = sorted(avgs_by_names.collect(), key=lambda x: x[1])
+# make the sort scalable
+sorted_by_count = avgs_by_names.map(lambda x_y: (x_y[1], x_y[0])).sortByKey()
+# (count, avg_age), name_grouped
+
+result = sorted_by_count.collect()
 
 print("Name, Count, Average Age")
-for element in sorted_by_count:
-	print("{}, {}, {:.2f}".format(element[0], element[1][0], element[1][1]))
+for element in result:
+	print("{}, {}, {:.2f}".format(element[1], element[0][0], element[0][1]))
