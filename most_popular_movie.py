@@ -11,18 +11,17 @@ conf = SparkConf().setMaster('local').setAppName('most_popular_movie')
 sc = SparkContext(conf=conf)
 
 lines = sc.textFile('c:/SparkCourse/ml-100k/u.data')
-parse_lines = lines.map(lambda x: (int(x.split()[1]), int(x.split()[2])))
-# MovieID, Rating
+parse_lines = lines.map(lambda x: int(x.split()[1]))
+# MovieID
 
-prep_ratings = parse_lines.mapValues(lambda x: (x,1))
-# MovieID, (Rating, 1)
+prep_movies = parse_lines.map(lambda x: (x,1))
+# MovieID, 1
 
-sums_ratings = prep_ratings.reduceByKey(lambda x,y: (x[0]+y[0], x[1]+y[1]))
-# MovieID_grouped, (Rating_sum, Count)
+movie_rating_counts = prep_movies.reduceByKey(lambda x,y: x+y)
+# MovieID_grouped, Count
 
-average_ratings = sums_ratings.mapValues(lambda x: x[0]/x[1])
-# MovieID_grouped, average_rating
+sorted_mrc = movie_rating_counts.map(lambda x: (x[1], x[0])).sortByKey(ascending=False)
 
-the_best_movie = average_ratings.map(lambda x: (x[1], x[0])).sortByKey(ascending=False).first()
+the_most_popular_movie = sorted_mrc.first()
 
-print("MovieID: " + str(the_best_movie[1]) + " is the best, with rating = " + str(the_best_movie[0]))
+print("MovieID: " + str(the_most_popular_movie[1]) + " is the most popular, with " + str(the_most_popular_movie[0]) + " ratings.")
